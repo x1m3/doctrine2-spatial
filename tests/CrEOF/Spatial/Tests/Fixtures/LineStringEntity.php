@@ -32,7 +32,6 @@ use CrEOF\Spatial\PHP\Types\Geometry\LineString;
  * @license http://dlambert.mit-license.org MIT
  *
  * @Entity
- * @Table(options={"engine"="MyISAM"})
  */
 class LineStringEntity
 {

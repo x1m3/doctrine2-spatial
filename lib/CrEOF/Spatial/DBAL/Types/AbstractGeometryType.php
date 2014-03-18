@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,10 @@
 
 namespace CrEOF\Spatial\DBAL\Types;
 
+use CrEOF\Spatial\Configuration;
+use CrEOF\Spatial\DBAL\Types\Platforms\PlatformInterface;
 use CrEOF\Spatial\Exception\InvalidValueException;
 use CrEOF\Spatial\Exception\UnsupportedPlatformException;
-use CrEOF\Spatial\DBAL\Types\Platforms\PlatformInterface;
 use CrEOF\Spatial\PHP\Types\Geometry\GeometryInterface;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
@@ -98,15 +99,7 @@ abstract class AbstractGeometryType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        if (null === $value) {
-            return null;
-        }
-
-        if (ctype_alpha($value[0])) {
-            return $this->getSpatialPlatform($platform)->convertStringToPHPValue($value);
-        }
-
-        return $this->getSpatialPlatform($platform)->convertBinaryToPHPValue($value);
+        return Configuration::getValueFactory()->convertToPHPValue($value, $platform, $this->getTypeFamily());
     }
 
     /**

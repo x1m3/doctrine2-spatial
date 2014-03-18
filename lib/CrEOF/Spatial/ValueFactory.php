@@ -51,6 +51,10 @@ class ValueFactory implements ValueFactoryInterface
             return null;
         }
 
+        if (is_resource($value)) {
+            $value = stream_get_contents($value);
+        }
+
         if (ctype_alpha($value[0])) {
             $parser = new StringParser($value);
         } else {

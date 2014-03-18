@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,6 @@
 
 namespace CrEOF\Spatial\DBAL\Types\Platforms;
 
-use CrEOF\Spatial\DBAL\Types\StringParser;
-use CrEOF\Spatial\DBAL\Types\BinaryParser;
-use CrEOF\Spatial\Exception\InvalidValueException;
 use CrEOF\Spatial\PHP\Types\Geometry\GeometryInterface;
 
 /**
@@ -39,49 +36,8 @@ abstract class AbstractPlatform implements PlatformInterface
     /**
      * {@inheritdoc}
      */
-    public function convertStringToPHPValue($sqlExpr)
-    {
-        $parser = new StringParser($sqlExpr);
-
-        return $this->newObjectFromValue($parser->parse());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function convertBinaryToPHPValue($sqlExpr)
-    {
-        $parser = new BinaryParser($sqlExpr);
-
-        return $this->newObjectFromValue($parser->parse());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function convertToDatabaseValue(GeometryInterface $value)
     {
         return sprintf('%s(%s)', strtoupper($value->getType()), $value);
-    }
-
-    /**
-     * Create spatial object from parsed value
-     *
-     * @param array $value
-     *
-     * @return GeometryInterface
-     * @throws \CrEOF\Spatial\Exception\InvalidValueException
-     */
-    private function newObjectFromValue($value)
-    {
-        $constName = 'CrEOF\Spatial\PHP\Types\Geometry\GeometryInterface::' . strtoupper($value['type']);
-
-        if ( ! defined($constName)) {
-            throw InvalidValueException::unsupportedType($this->getTypeFamily(), strtoupper($value['type']));
-        }
-
-        $class = sprintf('CrEOF\Spatial\PHP\Types\%s\%s', $this->getTypeFamily(), constant($constName));
-
-        return new $class($value['value'], $value['srid']);
     }
 }

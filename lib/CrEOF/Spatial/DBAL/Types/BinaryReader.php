@@ -126,7 +126,19 @@ class BinaryReader
      */
     private function setInput($input)
     {
-        $this->input = Utils::toBinary($input);
+        switch (ord($input) < 31) {
+            case true:
+                $this->input = $input;
+                break;
+            default:
+                $position = strpos($input, 'x');
+
+                if (false !== $position) {
+                    $input = substr($input, $position + 1);
+                }
+
+                $this->input = pack('H*', $input);
+        }
     }
 
     private function checkByteOrder()

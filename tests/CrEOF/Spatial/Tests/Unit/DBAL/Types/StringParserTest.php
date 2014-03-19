@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-namespace CrEOF\Spatial\Tests\DBAL\Types;
+namespace CrEOF\Spatial\Tests\Unit\DBAL\Types;
 
 use CrEOF\Spatial\DBAL\Types\StringParser;
 

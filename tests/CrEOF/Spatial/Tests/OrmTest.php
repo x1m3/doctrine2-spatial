@@ -24,10 +24,17 @@
 namespace CrEOF\Spatial\Tests;
 
 use CrEOF\Spatial\Exception\UnsupportedPlatformException;
+use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\ORM\Configuration;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\Tools\SchemaTool;
 
 /**
  * Abstract ORM test class
@@ -35,7 +42,7 @@ use Doctrine\ORM\Query;
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
  */
-abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
+abstract class OrmTest extends \PHPUnit_Framework_TestCase
 {
     const GEOMETRY_ENTITY         = 'CrEOF\Spatial\Tests\Fixtures\GeometryEntity';
     const NO_HINT_GEOMETRY_ENTITY = 'CrEOF\Spatial\Tests\Fixtures\NoHintGeometryEntity';
@@ -47,22 +54,41 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
     /**
      * @var bool
      */
-    protected static $_setup = false;
-
-    /**
-     * @var bool
-     */
-    protected static $_platformSetup = false;
+    protected static $platformSetup;
 
     /**
      * @var Connection
      */
-    protected static $_sharedConn;
+    protected static $sharedConnection;
 
     /**
      * @var array
      */
-    protected static $_entities = array(
+    protected static $entitiesCreated = array();
+
+    /**
+     * @var array
+     */
+    protected static $typesAdded = array();
+
+    /**
+     * @var string[]
+     */
+    protected static $types = array(
+        'geometry'      => 'CrEOF\Spatial\DBAL\Types\GeometryType',
+        'point'         => 'CrEOF\Spatial\DBAL\Types\Geometry\PointType',
+        'linestring'    => 'CrEOF\Spatial\DBAL\Types\Geometry\LineStringType',
+        'polygon'       => 'CrEOF\Spatial\DBAL\Types\Geometry\PolygonType',
+        'geography'     => 'CrEOF\Spatial\DBAL\Types\GeographyType',
+        'geopoint'      => 'CrEOF\Spatial\DBAL\Types\Geography\PointType',
+        'geolinestring' => 'CrEOF\Spatial\DBAL\Types\Geography\LineStringType',
+        'geopolygon'    => 'CrEOF\Spatial\DBAL\Types\Geography\PolygonType'
+    );
+
+    /**
+     * @var array[]
+     */
+    protected static $entities = array(
         'geometry' => array(
             'class' => self::GEOMETRY_ENTITY,
             'types' => array('geometry'),
@@ -96,65 +122,90 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
     );
 
     /**
-     * @var array
+     * @var EntityManager
      */
-    protected static $_types = array(
-        'geometry'      => 'CrEOF\Spatial\DBAL\Types\GeometryType',
-        'point'         => 'CrEOF\Spatial\DBAL\Types\Geometry\PointType',
-        'linestring'    => 'CrEOF\Spatial\DBAL\Types\Geometry\LineStringType',
-        'polygon'       => 'CrEOF\Spatial\DBAL\Types\Geometry\PolygonType',
-        'geography'     => 'CrEOF\Spatial\DBAL\Types\GeographyType',
-        'geopoint'      => 'CrEOF\Spatial\DBAL\Types\Geography\PointType',
-        'geolinestring' => 'CrEOF\Spatial\DBAL\Types\Geography\LineStringType',
-        'geopolygon'    => 'CrEOF\Spatial\DBAL\Types\Geography\PolygonType'
-    );
+    protected $entityManager;
+
+    /**
+     * @var SchemaTool
+     */
+    protected $schemaTool;
+
+    /**
+     * @var string[]
+     */
+    protected $usedEntities;
+
+    /**
+     * @var DebugStack
+     */
+    protected $sqlLoggerStack;
 
     /**
      * @var array
      */
-    protected static $_entitiesCreated = array();
+    protected $usedTypes;
 
     /**
-     * @var array
+     * @var Cache
      */
-    protected static $_typesAdded = array();
+    private static $metadataCache;
 
     /**
-     * @var array
+     * @var Cache
      */
-    protected $_usedEntities = array();
+    private static $queryCache;
 
     /**
-     * @var array
+     * Constructor
      */
-    protected $_usedTypes = array();
-
-    /**
-     * @param string $typeName
-     */
-    protected function useType($typeName)
+    public function __construct()
     {
-        $this->_usedTypes[$typeName] = true;
+        $this->usedTypes    = array();
+        $this->usedEntities = array();
     }
 
     /**
-     * @param string $entityName
+     * @return Connection
+     * @throws UnsupportedPlatformException
      */
-    protected function useEntity($entityName)
+    public static function getConnection()
     {
-        $this->_usedEntities[$entityName] = true;
+        $parameters   = array(
+            'driver'   => $GLOBALS['db_type'],
+            'host'     => $GLOBALS['db_host'],
+            'port'     => $GLOBALS['db_port'],
+            'user'     => $GLOBALS['db_username'],
+            'password' => $GLOBALS['db_password']
+        );
+        $databaseName = $GLOBALS['db_name'];
+        $connection   = DriverManager::getConnection($parameters);
 
-        foreach (static::$_entities[$entityName]['types'] as $type) {
-            $this->useType($type);
+        try {
+            $connection->getSchemaManager()->dropDatabase($databaseName);
+        } catch (\Doctrine\DBAL\DBALException $e) {
+            // We don't care if database didn't exist
         }
-    }
 
-    /**
-     * @return array
-     */
-    protected function getEntityClasses()
-    {
-        return array_column(array_intersect_key(static::$_entities, static::$_entitiesCreated), 'class');
+        $connection->getSchemaManager()->createDatabase($databaseName);
+        $connection->close();
+
+        $parameters['dbname'] = $databaseName;
+        $connection           = DriverManager::getConnection($parameters, new Configuration());
+        $platform             = $connection->getDatabasePlatform()->getName();
+
+        switch ($platform) {
+            case 'postgresql':
+                $connection->exec('CREATE EXTENSION postgis');
+                break;
+            case 'mysql':
+                break;
+            default:
+                throw UnsupportedPlatformException::unsupportedPlatform($platform);
+                break;
+        }
+
+        return $connection;
     }
 
     /**
@@ -162,13 +213,16 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
      */
     protected function setUp()
     {
-        parent::setUp();
-
-        if ( ! static::$_platformSetup) {
-            static::$_platformSetup = true;
-
-            $this->setupPlatform();
+        if ( ! isset(static::$sharedConnection)) {
+            static::$sharedConnection = static::getConnection();
         }
+
+        if (null === $this->entityManager) {
+            $this->entityManager = $this->getEntityManager();
+            $this->schemaTool    = new SchemaTool($this->entityManager);
+        }
+
+        $this->sqlLoggerStack->enabled = true;
 
         $this->setUpTypes();
         $this->setUpEntities();
@@ -176,22 +230,56 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
     }
 
     /**
-     * Add types used by test to DBAL
+     * @return EntityManager
      */
-    protected function setUpTypes()
+    protected function getEntityManager()
     {
-        foreach ($this->_usedTypes as $typeName => $bool) {
-            if ( ! isset(static::$_typesAdded[$typeName])) {
-                Type::addType($typeName, static::$_types[$typeName]);
-
-                // Since doctrineTypeComments may already be initialized check if added type requires comment
-                if (Type::getType($typeName)->requiresSQLCommentHint($this->getPlatform())) {
-                    $this->getPlatform()->markDoctrineTypeCommented($typeName);
-                }
-
-                static::$_typesAdded[$typeName] = true;
+        if (null === self::$metadataCache) {
+            if (isset($GLOBALS['DOCTRINE_CACHE_IMPL'])) {
+                self::$metadataCache = new $GLOBALS['DOCTRINE_CACHE_IMPL'];
+            } else {
+                self::$metadataCache = new ArrayCache();
             }
         }
+
+        if (null === self::$queryCache) {
+            self::$queryCache = new ArrayCache();
+        }
+
+        $this->sqlLoggerStack          = new DebugStack();
+        $this->sqlLoggerStack->enabled = false;
+        $connection                    = static::$sharedConnection;
+
+        /** @var Configuration $configuration */
+        $configuration = $connection->getConfiguration();
+
+        $configuration->setMetadataCacheImpl(self::$metadataCache);
+        $configuration->setQueryCacheImpl(self::$queryCache);
+        $configuration->setProxyDir(__DIR__ . '/Proxies');
+        $configuration->setProxyNamespace(__NAMESPACE__ . '\Proxies');
+        $configuration->setMetadataDriverImpl($configuration->newDefaultAnnotationDriver(array(), true));
+        $configuration->setSQLLogger($this->sqlLoggerStack);
+
+//        $eventManager = $connection->getEventManager();
+//
+//        foreach ($eventManager->getListeners() as $event => $listeners) {
+//            foreach ($listeners as $listener) {
+//                $eventManager->removeEventListener(array($event), $listener);
+//            }
+//        }
+//
+//        if (isset($GLOBALS['db_event_subscribers'])) {
+//            foreach (explode(",", $GLOBALS['db_event_subscribers']) as $subscriberClass) {
+//                $subscriberInstance = new $subscriberClass();
+//                $eventManager->addEventSubscriber($subscriberInstance);
+//            }
+//        }
+//
+//        if (isset($GLOBALS['debug_uow_listener'])) {
+//            $eventManager->addEventListener(array('onFlush'), new \Doctrine\ORM\Tools\DebugUnitOfWorkListener());
+//        }
+
+        return EntityManager::create($connection, $configuration);
     }
 
     /**
@@ -201,37 +289,63 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
     {
         $classes = array();
 
-        foreach ($this->_usedEntities as $entityName => $bool) {
-            if ( ! isset(static::$_entitiesCreated[$entityName])) {
-                $classes[] = $this->_em->getClassMetadata(static::$_entities[$entityName]['class']);
+        foreach ($this->usedEntities as $entityName => $bool) {
+            if ( ! isset(static::$entitiesCreated[$entityName])) {
+                $classes[] = $this->entityManager->getClassMetadata(static::$entities[$entityName]['class']);
 
-                static::$_entitiesCreated[$entityName] = true;
+                static::$entitiesCreated[$entityName] = true;
             }
         }
 
-        if ($classes) {
-            $this->_schemaTool->createSchema($classes);
+        if (0 !== count($classes)) {
+            $this->schemaTool->createSchema($classes);
         }
     }
 
     /**
-     * Perform any platform specific setup
-     *
-     * @group mysql
-     *
-     * @throws \CrEOF\Spatial\Exception\UnsupportedPlatformException
+     * @param string $typeName
      */
-    protected function setupPlatform()
+    protected function useType($typeName)
     {
-        switch ($this->getPlatform()->getName()) {
-            case 'postgresql':
-                static::$_sharedConn->exec('CREATE EXTENSION postgis');
-                break;
-            case 'mysql':
-                break;
-            default:
-                throw UnsupportedPlatformException::unsupportedPlatform($this->getPlatform()->getName());
-                break;
+        $this->usedTypes[$typeName] = true;
+    }
+
+    /**
+     * @param string $entityName
+     */
+    protected function useEntity($entityName)
+    {
+        $this->usedEntities[$entityName] = true;
+
+        foreach (static::$entities[$entityName]['types'] as $type) {
+            $this->useType($type);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getEntityClasses()
+    {
+        return array_column(array_intersect_key(static::$entities, static::$entitiesCreated), 'class');
+    }
+
+    /**
+     * Add types used by test to DBAL
+     */
+    protected function setUpTypes()
+    {
+        foreach ($this->usedTypes as $typeName => $bool) {
+            if ( ! isset(static::$typesAdded[$typeName])) {
+                Type::addType($typeName, static::$types[$typeName]);
+
+                // Since doctrineTypeComments may already be initialized check if added type requires comment
+                if (Type::getType($typeName)->requiresSQLCommentHint($this->getPlatform())) {
+                    $this->getPlatform()->markDoctrineTypeCommented($typeName);
+                }
+
+                static::$typesAdded[$typeName] = true;
+            }
         }
     }
 
@@ -241,38 +355,38 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
     protected function setUpFunctions()
     {
         if ($this->getPlatform()->getName() == 'postgresql') {
-            $this->_em->getConfiguration()->addCustomStringFunction('st_asbinary', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STAsBinary');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_astext', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STAsText');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_area', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STArea');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_centroid', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCentroid');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_closestpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STClosestPoint');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_contains', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STContains');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_containsproperly', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STContainsProperly');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_covers', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCovers');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_coveredby', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCoveredBy');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_crosses', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCrosses');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_disjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STDisjoint');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_distance', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STDistance');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_envelope', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STEnvelope');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_geomfromtext', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STGeomFromText');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_length', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STLength');
-            $this->_em->getConfiguration()->addCustomNumericFunction('st_linecrossingdirection', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STLineCrossingDirection');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_startpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STStartPoint');
-            $this->_em->getConfiguration()->addCustomStringFunction('st_summary', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STSummary');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_asbinary', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STAsBinary');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_astext', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STAsText');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_area', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STArea');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_centroid', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCentroid');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_closestpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STClosestPoint');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_contains', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STContains');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_containsproperly', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STContainsProperly');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_covers', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCovers');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_coveredby', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCoveredBy');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_crosses', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STCrosses');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_disjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STDisjoint');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_distance', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STDistance');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_envelope', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STEnvelope');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_geomfromtext', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STGeomFromText');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_length', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STLength');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('st_linecrossingdirection', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STLineCrossingDirection');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_startpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STStartPoint');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('st_summary', 'CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSql\STSummary');
         }
 
         if ($this->getPlatform()->getName() == 'mysql') {
-            $this->_em->getConfiguration()->addCustomNumericFunction('area', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Area');
-            $this->_em->getConfiguration()->addCustomStringFunction('asbinary', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\AsBinary');
-            $this->_em->getConfiguration()->addCustomStringFunction('astext', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\AsText');
-            $this->_em->getConfiguration()->addCustomNumericFunction('contains', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Contains');
-            $this->_em->getConfiguration()->addCustomNumericFunction('disjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Disjoint');
-            $this->_em->getConfiguration()->addCustomStringFunction('envelope', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Envelope');
-            $this->_em->getConfiguration()->addCustomStringFunction('geomfromtext', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\GeomFromText');
-            $this->_em->getConfiguration()->addCustomNumericFunction('glength', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\GLength');
-            $this->_em->getConfiguration()->addCustomNumericFunction('mbrcontains', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\MBRContains');
-            $this->_em->getConfiguration()->addCustomNumericFunction('mbrdisjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\MBRDisjoint');
-            $this->_em->getConfiguration()->addCustomStringFunction('startpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\StartPoint');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('area', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Area');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('asbinary', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\AsBinary');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('astext', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\AsText');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('contains', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Contains');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('disjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Disjoint');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('envelope', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\Envelope');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('geomfromtext', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\GeomFromText');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('glength', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\GLength');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('mbrcontains', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\MBRContains');
+            $this->entityManager->getConfiguration()->addCustomNumericFunction('mbrdisjoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\MBRDisjoint');
+            $this->entityManager->getConfiguration()->addCustomStringFunction('startpoint', 'CrEOF\Spatial\ORM\Query\AST\Functions\MySql\StartPoint');
         }
     }
 
@@ -281,15 +395,15 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
      */
     protected function tearDown()
     {
-        $conn = static::$_sharedConn;
+        $conn = static::$sharedConnection;
 
-        $this->_sqlLoggerStack->enabled = false;
+        $this->sqlLoggerStack->enabled = false;
 
-        foreach ($this->_usedEntities as $entityName => $bool) {
-            $conn->executeUpdate(sprintf('DELETE FROM %s', static::$_entities[$entityName]['table']));
+        foreach ($this->usedEntities as $entityName => $bool) {
+            $conn->executeUpdate(sprintf('DELETE FROM %s', static::$entities[$entityName]['table']));
         }
 
-        $this->_em->clear();
+        $this->entityManager->clear();
     }
 
     /**
@@ -297,6 +411,6 @@ abstract class OrmTest extends \Doctrine\Tests\OrmFunctionalTestCase
      */
     protected function getPlatform()
     {
-        return static::$_sharedConn->getDatabasePlatform();
+        return static::$sharedConnection->getDatabasePlatform();
     }
 }

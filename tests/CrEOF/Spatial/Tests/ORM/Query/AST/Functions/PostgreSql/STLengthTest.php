@@ -61,11 +61,11 @@ class STLengthTest extends OrmTest
             ))
         );
 
-        $this->_em->persist($entity);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT l, ST_Length(l.lineString) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
+        $query = $this->entityManager->createQuery('SELECT l, ST_Length(l.lineString) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
 
         $result = $query->getResult();
 
@@ -95,11 +95,11 @@ class STLengthTest extends OrmTest
             ))
         );
 
-        $this->_em->persist($entity);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE ST_Length(ST_GeomFromText(:p1)) > ST_Length(l.lineString)');
+        $query = $this->entityManager->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE ST_Length(ST_GeomFromText(:p1)) > ST_Length(l.lineString)');
 
         $query->setParameter('p1', $lineString, 'linestring');
 

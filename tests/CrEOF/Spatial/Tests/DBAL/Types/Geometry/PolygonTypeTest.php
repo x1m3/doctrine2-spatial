@@ -50,14 +50,14 @@ class PolygonTypeTest extends OrmTest
     {
         $entity = new PolygonEntity();
 
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::POLYGON_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::POLYGON_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -76,14 +76,14 @@ class PolygonTypeTest extends OrmTest
         $entity = new PolygonEntity();
 
         $entity->setPolygon(new Polygon($rings));
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::POLYGON_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::POLYGON_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -109,14 +109,14 @@ class PolygonTypeTest extends OrmTest
         $entity = new PolygonEntity();
 
         $entity->setPolygon(new Polygon($rings));
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::POLYGON_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::POLYGON_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -135,11 +135,11 @@ class PolygonTypeTest extends OrmTest
         $entity = new PolygonEntity();
 
         $entity->setPolygon(new Polygon($rings));
-        $this->_em->persist($entity);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $result = $this->_em->getRepository(self::POLYGON_ENTITY)->findByPolygon(new Polygon($rings));
+        $result = $this->entityManager->getRepository(self::POLYGON_ENTITY)->findByPolygon(new Polygon($rings));
 
         $this->assertEquals($entity, $result[0]);
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,29 @@
  * SOFTWARE.
  */
 
-namespace CrEOF\Spatial\Tests\PHP\Types\Geometry;
+namespace CrEOF\Spatial\Tests\Unit\PHP\Types\Geometry;
 
 use CrEOF\Spatial\PHP\Types\Geometry\LineString;
 use CrEOF\Spatial\PHP\Types\Geometry\Point;
-use CrEOF\Spatial\PHP\Types\Geometry\MultiLineString;
+use CrEOF\Spatial\PHP\Types\Geometry\Polygon;
 /**
- * MultiLineString object tests
+ * Polygon object tests
  *
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
  *
  * @group php
  */
-class MultiLineStringTest extends \PHPUnit_Framework_TestCase
+class PolygonTest extends \PHPUnit_Framework_TestCase
 {
-    public function testEmptyMultiLineString()
+    public function testEmptyPolygon()
     {
-        $multiLineString = new MultiLineString(array());
+        $polygon = new Polygon(array());
 
-        $this->assertEmpty($multiLineString->getLineStrings());
+        $this->assertEmpty($polygon->getRings());
     }
 
-    public function testMultiLineStringFromObjectsToArray()
+    public function testSolidPolygonFromObjectsToArray()
     {
         $expected = array(
             array(
@@ -52,25 +52,9 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 array(10, 10),
                 array(0, 10),
                 array(0, 0)
-            ),
-            array(
-                array(0, 0),
-                array(10, 0),
-                array(10, 10),
-                array(0, 10),
-                array(0, 0)
             )
         );
-        $lineStrings = array(
-            new LineString(
-                array(
-                    new Point(0, 0),
-                    new Point(10, 0),
-                    new Point(10, 10),
-                    new Point(0, 10),
-                    new Point(0, 0)
-                )
-            ),
+        $rings = array(
             new LineString(
                 array(
                     new Point(0, 0),
@@ -82,23 +66,14 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
             )
         );
 
-        $multiLineString = new MultiLineString($lineStrings);
+        $polygon = new Polygon($rings);
 
-        $this->assertEquals($expected, $multiLineString->toArray());
+        $this->assertEquals($expected, $polygon->toArray());
     }
 
-    public function testSolidMultiLineStringFromArraysGetRings()
+    public function testSolidPolygonFromArraysGetRings()
     {
         $expected = array(
-            new LineString(
-                array(
-                    new Point(0, 0),
-                    new Point(10, 0),
-                    new Point(10, 10),
-                    new Point(0, 10),
-                    new Point(0, 0)
-                )
-            ),
             new LineString(
                 array(
                     new Point(0, 0),
@@ -116,24 +91,17 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 array(10, 10),
                 array(0, 10),
                 array(0, 0)
-            ),
-            array(
-                array(0, 0),
-                array(10, 0),
-                array(10, 10),
-                array(0, 10),
-                array(0, 0)
             )
         );
 
-        $multiLineString = new MultiLineString($rings);
+        $polygon = new Polygon($rings);
 
-        $this->assertEquals($expected, $multiLineString->getLineStrings());
+        $this->assertEquals($expected, $polygon->getRings());
     }
 
-    public function testMultiLineStringFromObjectsGetSingleLineString()
+    public function testRingPolygonFromObjectsGetSingleRing()
     {
-        $lineString1 = new LineString(
+        $ring1 = new LineString(
             array(
                 new Point(0, 0),
                 new Point(10, 0),
@@ -142,7 +110,7 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 new Point(0, 0)
             )
         );
-        $lineString2 = new LineString(
+        $ring2 = new LineString(
             array(
                 new Point(5, 5),
                 new Point(7, 5),
@@ -151,14 +119,14 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 new Point(5, 5)
             )
         );
-        $multiLineString = new MultiLineString(array($lineString1, $lineString2));
+        $polygon = new Polygon(array($ring1, $ring2));
 
-        $this->assertEquals($lineString1, $multiLineString->getLineString(0));
+        $this->assertEquals($ring1, $polygon->getRing(0));
     }
 
-    public function testMultiLineStringFromObjectsGetLastLineString()
+    public function testRingPolygonFromObjectsGetLastRing()
     {
-        $lineString1 = new LineString(
+        $ring1 = new LineString(
             array(
                 new Point(0, 0),
                 new Point(10, 0),
@@ -167,7 +135,7 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 new Point(0, 0)
             )
         );
-        $lineString2 = new LineString(
+        $ring2 = new LineString(
             array(
                 new Point(5, 5),
                 new Point(7, 5),
@@ -176,15 +144,35 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 new Point(5, 5)
             )
         );
-        $polygon = new MultiLineString(array($lineString1, $lineString2));
+        $polygon = new Polygon(array($ring1, $ring2));
 
-        $this->assertEquals($lineString2, $polygon->getLineString(-1));
+        $this->assertEquals($ring2, $polygon->getRing(-1));
     }
 
-    public function testMultiLineStringFromArraysToString()
+    /**
+     * Test Polygon with open ring
+     *
+     * @expectedException        \CrEOF\Spatial\Exception\InvalidValueException
+     * @expectedExceptionMessage Invalid polygon, ring "(0 0,10 0,10 10,0 10)" is not closed
+     */
+    public function testOpenPolygonRing()
+    {
+        $rings = array(
+            new LineString(array(
+                new Point(0, 0),
+                new Point(10, 0),
+                new Point(10, 10),
+                new Point(0, 10)
+            ))
+        );
+
+        new Polygon($rings);
+    }
+
+    public function testSolidPolygonFromArraysToString()
     {
         $expected = '(0 0,10 0,10 10,0 10,0 0),(0 0,10 0,10 10,0 10,0 0)';
-        $lineStrings = array(
+        $rings = array(
             array(
                 array(0, 0),
                 array(10, 0),
@@ -200,8 +188,8 @@ class MultiLineStringTest extends \PHPUnit_Framework_TestCase
                 array(0, 0)
             )
         );
-        $multiLineString = new MultiLineString($lineStrings);
-        $result  = (string) $multiLineString;
+        $polygon = new Polygon($rings);
+        $result  = (string) $polygon;
 
         $this->assertEquals($expected, $result);
     }

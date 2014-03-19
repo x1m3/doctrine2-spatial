@@ -64,7 +64,7 @@ class EnvelopeTest extends OrmTest
         );
 
         $entity1->setPolygon(new Polygon($rings1));
-        $this->_em->persist($entity1);
+        $this->entityManager->persist($entity1);
 
         $entity2 = new PolygonEntity();
         $rings2 = array(
@@ -85,11 +85,11 @@ class EnvelopeTest extends OrmTest
         );
 
         $entity2->setPolygon(new Polygon($rings2));
-        $this->_em->persist($entity2);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity2);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query  = $this->_em->createQuery('SELECT AsText(Envelope(p.polygon)) FROM CrEOF\Spatial\Tests\Fixtures\PolygonEntity p');
+        $query  = $this->entityManager->createQuery('SELECT AsText(Envelope(p.polygon)) FROM CrEOF\Spatial\Tests\Fixtures\PolygonEntity p');
         $result = $query->getResult();
 
         $this->assertEquals('POLYGON((0 0,10 0,10 10,0 10,0 0))', $result[0][1]);
@@ -120,7 +120,7 @@ class EnvelopeTest extends OrmTest
         );
 
         $entity1->setPolygon(new Polygon($rings1));
-        $this->_em->persist($entity1);
+        $this->entityManager->persist($entity1);
 
         $entity2 = new PolygonEntity();
         $rings2 = array(
@@ -134,11 +134,11 @@ class EnvelopeTest extends OrmTest
         );
 
         $entity2->setPolygon(new Polygon($rings2));
-        $this->_em->persist($entity2);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity2);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query        = $this->_em->createQuery('SELECT p FROM CrEOF\Spatial\Tests\Fixtures\PolygonEntity p WHERE Envelope(p.polygon) = GeomFromText(:p1)');
+        $query        = $this->entityManager->createQuery('SELECT p FROM CrEOF\Spatial\Tests\Fixtures\PolygonEntity p WHERE Envelope(p.polygon) = GeomFromText(:p1)');
         $envelopeRing = new LineString(array(
                 new Point(0, 0),
                 new Point(10, 0),

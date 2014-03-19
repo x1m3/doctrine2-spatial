@@ -60,11 +60,11 @@ class StartPointTest extends OrmTest
         $entity1 = new LineStringEntity();
 
         $entity1->setLineString($lineString1);
-        $this->_em->persist($entity1);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity1);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT AsText(StartPoint(l.lineString)) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
+        $query = $this->entityManager->createQuery('SELECT AsText(StartPoint(l.lineString)) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
 
         $result = $query->getResult();
 
@@ -89,16 +89,16 @@ class StartPointTest extends OrmTest
         $entity1 = new LineStringEntity();
 
         $entity1->setLineString($lineString1);
-        $this->_em->persist($entity1);
+        $this->entityManager->persist($entity1);
 
         $entity2 = new LineStringEntity();
 
         $entity2->setLineString($lineString2);
-        $this->_em->persist($entity2);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity2);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE StartPoint(l.lineString) = GeomFromText(:p1)');
+        $query = $this->entityManager->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE StartPoint(l.lineString) = GeomFromText(:p1)');
 
         $query->setParameter('p1', new Point(0, 0), 'point');
 
@@ -126,16 +126,16 @@ class StartPointTest extends OrmTest
         $entity1 = new LineStringEntity();
 
         $entity1->setLineString($lineString1);
-        $this->_em->persist($entity1);
+        $this->entityManager->persist($entity1);
 
         $entity2 = new LineStringEntity();
 
         $entity2->setLineString($lineString2);
-        $this->_em->persist($entity2);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity2);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE StartPoint(l.lineString) = StartPoint(GeomFromText(:p1))');
+        $query = $this->entityManager->createQuery('SELECT l FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l WHERE StartPoint(l.lineString) = StartPoint(GeomFromText(:p1))');
 
         $query->setParameter('p1', $lineString2, 'linestring');
 

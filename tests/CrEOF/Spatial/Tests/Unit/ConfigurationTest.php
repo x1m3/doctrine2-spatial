@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,52 +21,31 @@
  * SOFTWARE.
  */
 
-namespace CrEOF\Spatial\Tests\DBAL\Types;
+namespace CrEOF\Spatial\Tests\Unit;
 
-use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\Query;
-use CrEOF\Spatial\Tests\OrmTest;
+use CrEOF\Spatial\Configuration;
 
 /**
- * Doctrine schema related tests
+ * Configuration class tests
  *
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
  *
- * @group result_processing
+ * @group php
+ * @runInSeparateProcess
  */
-class SchemaTest extends OrmTest
+class ConfigurationTest extends \PHPUnit_Framework_TestCase
 {
-    public function testDoctrineTypeMapping()
+    public function testDefaultValueFactory()
     {
-        foreach ($this->getAllClassMetadata() as $metadata) {
-            foreach ($metadata->getFieldNames() as $fieldName) {
-                $fieldType = $metadata->getTypeOfField($fieldName);
+        $this->assertInstanceOf('CrEOF\Spatial\ValueFactoryInterface', Configuration::getValueFactory());
+        $this->assertInstanceOf('CrEOF\Spatial\ValueFactory', Configuration::getValueFactory());
 
-                // Throws exception if mapping does not exist
-                $typeMapping = $this->getPlatform()->getDoctrineTypeMapping($fieldType);
-            }
-        }
-    }
+        $mock = $this->getMock('CrEOF\Spatial\ValueFactoryInterface');
 
-    public function testSchemaReverseMapping()
-    {
-        $result = $this->schemaTool->getUpdateSchemaSql($this->getAllClassMetadata(), true);
+        Configuration::setValueFactory($mock);
 
-        $this->assertCount(0, $result);
-    }
-
-    /**
-     * @return \Doctrine\ORM\Mapping\ClassMetadata[]
-     */
-    private function getAllClassMetadata()
-    {
-        $metadata = array();
-
-        foreach ($this->getEntityClasses() as $entityClass) {
-            $metadata[] = $this->entityManager->getClassMetadata($entityClass);
-        }
-
-        return $metadata;
+        $this->assertInstanceOf('CrEOF\Spatial\ValueFactoryInterface', Configuration::getValueFactory());
+        $this->assertNotInstanceOf('CrEOF\Spatial\ValueFactory', Configuration::getValueFactory());
     }
 }

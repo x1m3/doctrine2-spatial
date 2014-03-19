@@ -49,14 +49,14 @@ class LineStringTypeTest extends OrmTest
     {
         $entity = new LineStringEntity();
 
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::LINESTRING_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::LINESTRING_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -72,14 +72,14 @@ class LineStringTypeTest extends OrmTest
         $entity = new LineStringEntity();
 
         $entity->setLineString($lineString);
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::LINESTRING_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::LINESTRING_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -95,12 +95,12 @@ class LineStringTypeTest extends OrmTest
         $entity = new LineStringEntity();
 
         $entity->setLineString($lineString);
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $result = $this->_em->getRepository(self::LINESTRING_ENTITY)->findByLineString($lineString);
+        $result = $this->entityManager->getRepository(self::LINESTRING_ENTITY)->findByLineString($lineString);
 
         $this->assertEquals($entity, $result[0]);
     }

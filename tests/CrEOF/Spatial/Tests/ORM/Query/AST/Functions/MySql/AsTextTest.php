@@ -64,16 +64,16 @@ class AsTextTest extends OrmTest
         $entity1 = new LineStringEntity();
 
         $entity1->setLineString(new LineString($lineString1));
-        $this->_em->persist($entity1);
+        $this->entityManager->persist($entity1);
 
         $entity2 = new LineStringEntity();
 
         $entity2->setLineString(new LineString($lineString2));
-        $this->_em->persist($entity2);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($entity2);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $query = $this->_em->createQuery('SELECT AsText(l.lineString) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
+        $query = $this->entityManager->createQuery('SELECT AsText(l.lineString) FROM CrEOF\Spatial\Tests\Fixtures\LineStringEntity l');
 
         $result = $query->getResult();
 

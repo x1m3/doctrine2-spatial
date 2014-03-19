@@ -50,14 +50,14 @@ class GeographyTypeTest extends OrmTest
     {
         $entity = new GeographyEntity();
 
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -67,14 +67,14 @@ class GeographyTypeTest extends OrmTest
         $entity = new GeographyEntity();
 
         $entity->setGeography(new Point(1, 1));
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -89,14 +89,14 @@ class GeographyTypeTest extends OrmTest
                  new Point(1, 1)
             ))
         );
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }
@@ -116,14 +116,14 @@ class GeographyTypeTest extends OrmTest
         );
 
         $entity->setGeography(new Polygon($rings));
-        $this->_em->persist($entity);
-        $this->_em->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         $id = $entity->getId();
 
-        $this->_em->clear();
+        $this->entityManager->clear();
 
-        $queryEntity = $this->_em->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
+        $queryEntity = $this->entityManager->getRepository(self::GEOGRAPHY_ENTITY)->find($id);
 
         $this->assertEquals($entity, $queryEntity);
     }

@@ -141,6 +141,9 @@ class BinaryReader
         }
     }
 
+    /**
+     * @throws InvalidValueException
+     */
     private function checkByteOrder()
     {
         if ( ! isset($this->byteOrder)) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ class StringParser
     {
         $this->lexer->moveNext();
 
-        if ($this->lexer->lookahead['type'] == StringLexer::T_SRID) {
+        if (StringLexer::T_SRID === $this->lexer->lookahead['type']) {
             $this->srid = $this->srid();
         }
 
@@ -126,11 +126,17 @@ class StringParser
         return $this->lexer->token['value'];
     }
 
+    /**
+     * @return array[]
+     */
     protected function lineString()
     {
         return $this->pointList();
     }
 
+    /**
+     * @return array[]
+     */
     protected function polygon()
     {
         return $this->pointLists();
@@ -249,11 +255,14 @@ class StringParser
         return $collection;
     }
 
+    /**
+     * @param string $token
+     */
     protected function match($token)
     {
         $lookaheadType = $this->lexer->lookahead['type'];
 
-        if ($lookaheadType !== $token && ($token !== StringLexer::T_TYPE || $lookaheadType <= StringLexer::T_TYPE)) {
+        if ($lookaheadType !== $token && (StringLexer::T_TYPE !== $token || $lookaheadType <= StringLexer::T_TYPE)) {
             $this->syntaxError($this->lexer->getLiteral($token));
         }
 
@@ -268,15 +277,15 @@ class StringParser
      */
     protected function syntaxError($expected = '', $token = null)
     {
-        if ($token === null) {
+        if (null === $token) {
             $token = $this->lexer->lookahead;
         }
 
         $tokenPos = (isset($token['position'])) ? $token['position'] : '-1';
 
         $message  = 'line 0, col ' . $tokenPos . ': Error: ';
-        $message .= ($expected !== '') ? 'Expected ' . $expected . ', got ' : 'Unexpected ';
-        $message .= ($this->lexer->lookahead === null) ? 'end of string.' : '"' . $token['value'] . '"';
+        $message .= ('' !== $expected) ? 'Expected ' . $expected . ', got ' : 'Unexpected ';
+        $message .= (null === $this->lexer->lookahead) ? 'end of string.' : '"' . $token['value'] . '"';
 
         throw InvalidValueException::syntaxError($message, $this->input);
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,20 +55,25 @@ class StringLexer extends \Doctrine\Common\Lexer
     const T_GEOMETRYCOLLECTION = 607;
 
     /**
-     * @param string $input a query string
+     * @param string $input
      */
     public function __construct($input)
     {
         $this->setInput($input);
     }
 
+    /**
+     * @param string &$value
+     *
+     * @return int
+     */
     protected function getType(&$value)
     {
         $type = self::T_NONE;
 
         switch (true) {
             case (is_numeric($value)):
-                if (strpos($value, '.') !== false) {
+                if (false !== strpos($value, '.')) {
                     $value = (float) $value;
 
                     return self::T_FLOAT;
@@ -85,19 +90,19 @@ class StringLexer extends \Doctrine\Common\Lexer
                 }
 
                 return self::T_STRING;
-            case ($value === '.'):
+            case ('.' === $value):
                 return self::T_DOT;
-            case ($value === ','):
+            case (',' === $value):
                 return self::T_COMMA;
-            case ($value === '('):
+            case ('(' === $value):
                 return self::T_OPEN_PARENTHESIS;
-            case ($value === ')'):
+            case ( ')' === $value):
                 return self::T_CLOSE_PARENTHESIS;
-            case ($value === '-'):
+            case ('-' === $value):
                 return self::T_MINUS;
-            case ($value === '='):
+            case ('=' === $value):
                 return self::T_EQUALS;
-            case ($value === ';'):
+            case (';' === $value):
                 return self::T_SEMICOLON;
             default:
                 break;

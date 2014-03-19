@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ use CrEOF\Spatial\PHP\Types\Geography\GeographyInterface;
 class GeographyType extends AbstractGeometryType
 {
     /**
-     * {@inheritdoc}
+     * @return string
      */
     public function getSQLType()
     {
@@ -42,7 +42,7 @@ class GeographyType extends AbstractGeometryType
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
     public function getTypeFamily()
     {

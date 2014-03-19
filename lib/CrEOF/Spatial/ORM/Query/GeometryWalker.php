@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 namespace CrEOF\Spatial\ORM\Query;
 
 use CrEOF\Spatial\ORM\Query\AST\Functions\ReturnsGeometryInterface;
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\Query\AST\SelectExpression;
+use Doctrine\ORM\Query\ParserResult;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Query\SqlWalker;
 
@@ -44,7 +46,9 @@ class GeometryWalker extends SqlWalker
     protected $rsm;
 
     /**
-     * {@inheritDoc}
+     * @param AbstractQuery $query
+     * @param ParserResult  $parserResult
+     * @param array         $queryComponents
      */
     public function __construct($query, $parserResult, array $queryComponents)
     {
@@ -54,7 +58,7 @@ class GeometryWalker extends SqlWalker
     }
 
     /**
-     * Walks down a SelectExpression AST node and generates the corresponding SQL.
+     * Walks down a SelectExpression AST node and generates the corresponding SQL
      *
      * @param SelectExpression $selectExpression
      *

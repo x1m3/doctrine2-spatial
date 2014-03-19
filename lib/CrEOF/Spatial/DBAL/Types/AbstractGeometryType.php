@@ -39,7 +39,7 @@ use Doctrine\DBAL\Types\Type;
  */
 abstract class AbstractGeometryType extends Type
 {
-    const PLATFORM_MYSQL = 'MySql';
+    const PLATFORM_MYSQL      = 'MySql';
     const PLATFORM_POSTGRESQL = 'PostgreSql';
 
     /**
@@ -55,7 +55,7 @@ abstract class AbstractGeometryType extends Type
     abstract public function getSQLType();
 
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function canRequireSQLConversion()
     {
@@ -63,7 +63,11 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed            $value
+     * @param AbstractPlatform $platform
+     *
+     * @return mixed
+     * @throws InvalidValueException
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -79,7 +83,10 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param string           $sqlExpr
+     * @param AbstractPlatform $platform
+     *
+     * @return string
      */
     public function convertToPHPValueSQL($sqlExpr, $platform)
     {
@@ -87,7 +94,10 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param string           $sqlExpr
+     * @param AbstractPlatform $platform
+     *
+     * @return string
      */
     public function convertToDatabaseValueSQL($sqlExpr, AbstractPlatform $platform)
     {
@@ -95,7 +105,10 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed            $value
+     * @param AbstractPlatform $platform
+     *
+     * @return mixed
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
@@ -103,7 +116,7 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
     public function getName()
     {
@@ -111,7 +124,10 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param array            $fieldDeclaration
+     * @param AbstractPlatform $platform
+     *
+     * @return string
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
@@ -119,7 +135,9 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param AbstractPlatform $platform
+     *
+     * @return array
      */
     public function getMappedDatabaseTypes(AbstractPlatform $platform)
     {
@@ -127,7 +145,9 @@ abstract class AbstractGeometryType extends Type
     }
 
     /**
-     * {@inheritdoc}
+     * @param AbstractPlatform $platform
+     *
+     * @return bool
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {

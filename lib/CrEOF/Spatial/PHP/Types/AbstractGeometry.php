@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,9 @@ use CrEOF\Spatial\PHP\Types\Geometry\GeometryInterface;
 /**
  * Abstract geometry object for spatial types
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 abstract class AbstractGeometry implements GeometryInterface
 {
@@ -46,6 +47,8 @@ abstract class AbstractGeometry implements GeometryInterface
 
     /**
      * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function __toString()
     {
@@ -57,6 +60,8 @@ abstract class AbstractGeometry implements GeometryInterface
 
     /**
      * @return null|int
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getSrid()
     {
@@ -67,6 +72,8 @@ abstract class AbstractGeometry implements GeometryInterface
      * @param mixed $srid
      *
      * @return self
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function setSrid($srid)
     {

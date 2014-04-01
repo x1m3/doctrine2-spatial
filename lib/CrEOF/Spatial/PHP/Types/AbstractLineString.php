@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,13 +28,16 @@ use CrEOF\Spatial\Exception\InvalidValueException;
 /**
  * Abstract LineString object for LINESTRING spatial types
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 abstract class AbstractLineString extends AbstractMultiPoint
 {
     /**
      * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getType()
     {
@@ -43,6 +46,8 @@ abstract class AbstractLineString extends AbstractMultiPoint
 
     /**
      * @return bool
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function isClosed()
     {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2013 Derek J. Lambert
+ * Copyright (C) 2013, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,49 @@ namespace CrEOF\Spatial\PHP\Types\Geometry;
 /**
  * Geometry interface for Geometry objects
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 interface GeometryInterface
 {
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const GEOMETRY           = 'Geometry';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const POINT              = 'Point';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const LINESTRING         = 'LineString';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const POLYGON            = 'Polygon';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const MULTIPOINT         = 'MultiPoint';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const MULTILINESTRING    = 'MultiLineString';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const MULTIPOLYGON       = 'MultiPolygon';
+    /**
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
     const GEOMETRYCOLLECTION = 'GeometryCollection';
 
     /**
      * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getType();
 }

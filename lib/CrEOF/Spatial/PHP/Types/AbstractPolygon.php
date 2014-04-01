@@ -26,8 +26,9 @@ namespace CrEOF\Spatial\PHP\Types;
 /**
  * Abstract Polygon object for POLYGON spatial types
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 abstract class AbstractPolygon extends AbstractGeometry
 {
@@ -39,6 +40,8 @@ abstract class AbstractPolygon extends AbstractGeometry
     /**
      * @param AbstractLineString[]|array[] $rings
      * @param null|int                     $srid
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function __construct(array $rings, $srid = null)
     {
@@ -50,6 +53,8 @@ abstract class AbstractPolygon extends AbstractGeometry
      * @param AbstractLineString|array[] $ring
      *
      * @return self
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function addRing($ring)
     {
@@ -60,6 +65,8 @@ abstract class AbstractPolygon extends AbstractGeometry
 
     /**
      * @return AbstractLineString[]
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getRings()
     {
@@ -76,6 +83,8 @@ abstract class AbstractPolygon extends AbstractGeometry
      * @param int $index
      *
      * @return AbstractLineString
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getRing($index)
     {
@@ -92,6 +101,8 @@ abstract class AbstractPolygon extends AbstractGeometry
      * @param AbstractLineString[] $rings
      *
      * @return self
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function setRings(array $rings)
     {
@@ -102,6 +113,8 @@ abstract class AbstractPolygon extends AbstractGeometry
 
     /**
      * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getType()
     {
@@ -110,6 +123,8 @@ abstract class AbstractPolygon extends AbstractGeometry
 
     /**
      * @return array[]
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function toArray()
     {

@@ -28,8 +28,9 @@ use CrEOF\Spatial\Exception\InvalidValueException;
 /**
  * Abstract MultiPoint object for MULTIPOINT spatial types
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 abstract class AbstractMultiPoint extends AbstractGeometry
 {

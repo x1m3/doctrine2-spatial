@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,9 @@ use CrEOF\Spatial\PHP\Types\AbstractPoint;
 /**
  * Abstract MultiLineString object for MULTILINESTRING spatial types
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
 abstract class AbstractMultiLineString extends AbstractGeometry
 {
@@ -42,6 +43,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
     /**
      * @param AbstractLineString[]|array[] $rings
      * @param null|int                     $srid
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function __construct(array $rings, $srid = null)
     {
@@ -53,6 +56,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
      * @param AbstractLineString|array[] $lineString
      *
      * @return self
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function addLineString($lineString)
     {
@@ -63,6 +68,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
 
     /**
      * @return AbstractLineString[]
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getLineStrings()
     {
@@ -79,6 +86,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
      * @param int $index
      *
      * @return AbstractLineString
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getLineString($index)
     {
@@ -95,6 +104,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
      * @param AbstractLineString[] $lineStrings
      *
      * @return self
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function setLineStrings(array $lineStrings)
     {
@@ -105,6 +116,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
 
     /**
      * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function getType()
     {
@@ -113,6 +126,8 @@ abstract class AbstractMultiLineString extends AbstractGeometry
 
     /**
      * @return array[]
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
      */
     public function toArray()
     {

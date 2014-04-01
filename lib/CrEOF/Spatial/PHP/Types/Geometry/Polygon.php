@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Derek J. Lambert
+ * Copyright (C) 2012, 2014 Derek J. Lambert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,41 @@
 
 namespace CrEOF\Spatial\PHP\Types\Geometry;
 
-use CrEOF\Spatial\PHP\Types\AbstractPolygon;
-
 /**
  * Polygon object for POLYGON geometry type
  *
- * @author  Derek J. Lambert <dlambert@dereklambert.com>
- * @license http://dlambert.mit-license.org MIT
+ * @author     Derek J. Lambert <dlambert@dereklambert.com>
+ * @license    http://dlambert.mit-license.org MIT
+ * @deprecated Geometry classes have been replaced by creof/geo
  */
-class Polygon extends AbstractPolygon
+class Polygon extends \CrEOF\Geo\Polygon implements GeometryInterface
 {
+    /**
+     * @return string
+     *
+     * @deprecated Geometry classes have been replaced by creof/geo
+     */
+    public function getType()
+    {
+        return self::POLYGON;
+    }
 
+    /**
+     * @param LineString[]|array[] $value
+     *
+     * @return LineString
+     * @throws \Exception
+     */
+    protected function getValidObject($value)
+    {
+        if ( ! ($value instanceof LineString)) {
+            $value = new LineString($value);
+        }
+
+        if ( ! $value->isClosed()) {
+            throw new \Exception(sprintf('Ring "%s" in polygon is not closed', $value));
+        }
+
+        return $value;
+    }
 }

@@ -3,3 +3,5 @@ composer.lock*
 doctrine2-spatial.iml
 .idea*
 .idea/*
+/nbproject/private/
+/nbproject/*
